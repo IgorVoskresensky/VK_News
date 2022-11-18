@@ -1,66 +1,42 @@
 package ru.ivos.vk_news.ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import kotlinx.coroutines.launch
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import ru.ivos.vk_news.MainViewModel
+import ru.ivos.vk_news.ui.navigation.AppNavGraph
+import ru.ivos.vk_news.ui.navigation.NavigationState
+import ru.ivos.vk_news.ui.navigation.Screen
+import ru.ivos.vk_news.ui.navigation.rememberNavigationState
 
 @Composable
-fun MainScreen() {
+fun MainScreen(viewModel: MainViewModel) {
 
-    val snackBarHostState = remember {
-        SnackbarHostState()
-    }
-    val scope = rememberCoroutineScope()
-    val fabIsVisible = remember {
-        mutableStateOf(true)
-    }
+    val navigationState = rememberNavigationState()
 
     Scaffold(
-        snackbarHost = {
-            SnackbarHost(hostState = snackBarHostState)
-        },
-        floatingActionButton = {
-            if (fabIsVisible.value) {
-                FloatingActionButton(
-                    onClick = {
-                        scope.launch {
-                            val action = snackBarHostState.showSnackbar(
-                                message = "This is snackBar",
-                                actionLabel = "Hide FAB",
-                                duration = SnackbarDuration.Long
-                            )
-                            if (action == SnackbarResult.ActionPerformed) {
-                                fabIsVisible.value = false
-                            }
-                        }
-                    },
-                content = {
-                    Icon(Icons.Outlined.Favorite, contentDescription = null)
-                })
-            }
 
-        },
         bottomBar = {
             BottomNavigation {
-
-                val selectedItemPosition = remember {
-                    mutableStateOf(0)
-                }
+                val navBackStackEntry by navigationState.navHostController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
                 val items = listOf(
                     NavigationItem.Home,
                     NavigationItem.Favorite,
                     NavigationItem.Profile
                 )
-                items.forEachIndexed { index, item ->
+                items.forEach { item ->
                     BottomNavigationItem(
-                        selected = selectedItemPosition.value == index,
-                        onClick = { selectedItemPosition.value = index },
+                        selected = currentRoute == item.screen.route,
+                        onClick = {
+                            navigationState.navigateTo(item.screen.route)
+                        },
                         icon = {
                             Icon(item.icon, contentDescription = null)
                         },
@@ -74,7 +50,16 @@ fun MainScreen() {
             }
         }
 
-    ) {
-
+    ) { paddingValues ->
+        AppNavGraph(
+            navHostController = navigationState.navHostController,
+            homeScreenContent = {
+                HomeScreen(
+                    viewModel = viewModel,
+                    paddingValues = paddingValues
+                )
+            },
+            favoriteScreenContent = { Text(text = "Favorite", color = Color.Black) },
+            profileScreenContent = { Text(text = "Profile", color = Color.Black) })
     }
 }
