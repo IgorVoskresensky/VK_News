@@ -7,5 +7,5 @@ data class PostComment(
     val authorName: String = "author",
     val authorAvatarId: Int = R.drawable.comment_author_avatar,
     val commentText: String = "Long comment here",
-    val publicationDate: String
+    val publicationDate: String = "14:00"
 )

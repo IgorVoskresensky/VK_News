@@ -1,7 +1,10 @@
 package ru.ivos.vk_news.domain
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 import ru.ivos.vk_news.R
 
+@Parcelize
 data class FeedPost(
     val id: Int = 0,
     val communityName: String = "/dev/null",
@@ -15,4 +18,4 @@ data class FeedPost(
         StatisticItem(StatisticType.COMMENTS, 0),
         StatisticItem(StatisticType.LIKES, 0)
     )
-)
+) : Parcelable

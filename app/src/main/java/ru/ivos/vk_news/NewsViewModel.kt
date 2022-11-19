@@ -5,9 +5,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import ru.ivos.vk_news.domain.FeedPost
 import ru.ivos.vk_news.domain.StatisticItem
-import ru.ivos.vk_news.ui.NavigationItem
+import ru.ivos.vk_news.ui.screens.NewsScreenState
 
-class MainViewModel : ViewModel() {
+class NewsViewModel : ViewModel() {
 
     private val sourceList = mutableListOf<FeedPost>().apply {
         repeat(10) {
@@ -15,11 +15,17 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    private val _feedPosts = MutableLiveData<List<FeedPost>>(sourceList)
-    val feedPosts: LiveData<List<FeedPost>> = _feedPosts
+    private val initialState = NewsScreenState.Posts(posts = sourceList)
+
+    private val _screenState = MutableLiveData<NewsScreenState>(initialState)
+    val screenState: LiveData<NewsScreenState> = _screenState
 
     fun updateCount(feedPost: FeedPost, item: StatisticItem) {
-        val oldPosts = _feedPosts.value?.toMutableList() ?: mutableListOf()
+        val currentState = _screenState.value
+
+        if(currentState !is NewsScreenState.Posts) return
+
+        val oldPosts = currentState.posts.toMutableList()
         val oldStatistics = feedPost.statistics
         val newStatistics = oldStatistics.toMutableList().apply {
             replaceAll { oldItem ->
@@ -31,7 +37,7 @@ class MainViewModel : ViewModel() {
             }
         }
         val newFeedPost = feedPost.copy(statistics = newStatistics)
-        _feedPosts.value = oldPosts.apply {
+        val newPosts = oldPosts.apply {
             replaceAll {
                 if (it.id == newFeedPost.id) {
                     newFeedPost
@@ -40,11 +46,16 @@ class MainViewModel : ViewModel() {
                 }
             }
         }
+        _screenState.value = NewsScreenState.Posts(posts = newPosts)
     }
 
     fun deletePost(item: FeedPost) {
-        val oldPosts = _feedPosts.value?.toMutableList() ?: mutableListOf()
+        val currentState = _screenState.value
+
+        if(currentState !is NewsScreenState.Posts) return
+
+        val oldPosts = currentState.posts.toMutableList()
         oldPosts.remove(item)
-        _feedPosts.value = oldPosts
+        _screenState.value = NewsScreenState.Posts(posts = oldPosts)
     }
 }
